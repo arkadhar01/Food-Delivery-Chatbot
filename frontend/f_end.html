@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khide Mitai - Food Delivery</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a}
+.app{display:grid;grid-template-columns:260px 1fr 320px;height:100vh;min-height:600px}
+.sidebar{background:#fff;border-right:1px solid #e8e8e8;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:1.25rem 1rem 1rem;border-bottom:1px solid #e8e8e8}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:36px;height:36px;border-radius:8px;background:#D85A30;display:flex;align-items:center;justify-content:center}
+.brand-icon svg{width:20px;height:20px;fill:white}
+.brand-name{font-size:17px;font-weight:600;color:#1a1a1a}
+.brand-sub{font-size:11px;color:#888}
+.nav-section{padding:0.75rem 0.75rem 0.25rem;font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:2px 8px;border-radius:8px;cursor:pointer;font-size:14px;color:#555;transition:all 0.15s}
+.nav-item:hover{background:#f5f5f0;color:#1a1a1a}
+.nav-item.active{background:#FAECE7;color:#993C1D}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.restaurants-list{flex:1;overflow-y:auto;padding:0 0 1rem}
+.rest-item{display:flex;align-items:center;gap:10px;padding:10px 1rem;cursor:pointer;border-bottom:1px solid #f0f0f0;transition:background 0.1s}
+.rest-item:hover{background:#fafafa}
+.rest-item.selected{background:#FAECE7}
+.rest-avatar{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.rest-info{flex:1;min-width:0}
+.rest-name{font-size:13px;font-weight:500;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rest-meta{font-size:11px;color:#888}
+.stars{color:#BA7517}
+.main{display:flex;flex-direction:column;overflow:hidden;background:#f5f5f0}
+.topbar{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-size:16px;font-weight:600;color:#1a1a1a}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #ddd;background:#fff;color:#1a1a1a;transition:all 0.15s}
+.btn:hover{background:#f5f5f0}
+.btn-primary{background:#D85A30;color:white;border-color:#D85A30}
+.btn-primary:hover{background:#993C1D;border-color:#993C1D}
+.content{flex:1;overflow-y:auto;padding:1.25rem 1.5rem}
+.view{display:none}
+.view.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.stat-card{background:#ebebeb;border-radius:8px;padding:1rem}
+.stat-label{font-size:12px;color:#666;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600;color:#1a1a1a}
+.stat-sub{font-size:11px;color:#999;margin-top:2px}
+.section-head{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:12px}
+.rest-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e8e8e8}
+.rest-table th{text-align:left;font-size:12px;font-weight:600;color:#666;padding:10px 14px;border-bottom:1px solid #e8e8e8;background:#fafafa}
+.rest-table td{padding:11px 14px;font-size:13px;color:#1a1a1a;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.rest-table tr:last-child td{border-bottom:none}
+.rest-table tbody tr:hover td{background:#fafafa}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.menu-header{margin-bottom:1rem}
+.menu-header h2{font-size:18px;font-weight:600;color:#1a1a1a}
+.menu-header p{font-size:13px;color:#666;margin-top:2px}
+.filter-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:20px;font-size:12px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;transition:all 0.15s}
+.filter-btn.active,.filter-btn:hover{background:#FAECE7;color:#993C1D;border-color:#F0997B}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.menu-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem;cursor:pointer;transition:all 0.15s}
+.menu-card:hover{border-color:#ccc;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.menu-card-name{font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:4px}
+.menu-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.price{font-size:15px;font-weight:600;color:#1a1a1a}
+.add-btn{width:28px;height:28px;border-radius:50%;background:#D85A30;border:none;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+.add-btn:hover{background:#993C1D}
+.order-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem;margin-bottom:10px}
+.order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.order-id{font-size:13px;font-weight:600;color:#1a1a1a}
+.order-footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:10px}
+.order-total{font-weight:600;color:#1a1a1a}
+.order-date{color:#aaa}
+.chat-panel{background:#fff;border-left:1px solid #e8e8e8;display:flex;flex-direction:column;overflow:hidden}
+.chat-header{padding:1rem 1rem 0.75rem;border-bottom:1px solid #e8e8e8;flex-shrink:0}
+.chat-title{font-size:14px;font-weight:600;color:#1a1a1a}
+.chat-sub{font-size:11px;color:#888}
+.chat-status{display:flex;align-items:center;gap:6px;margin-top:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:#639922;flex-shrink:0}
+.quick-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px 0}
+.chip{padding:5px 10px;border-radius:20px;font-size:11px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;transition:all 0.15s}
+.chip:hover{background:#FAECE7;color:#993C1D;border-color:#F0997B}
+.chat-messages{flex:1;overflow-y:auto;padding:12px}
+.msg{margin-bottom:10px;display:flex;flex-direction:column}
+.msg.user{align-items:flex-end}
+.msg.bot{align-items:flex-start}
+.bubble{max-width:88%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-line}
+.msg.user .bubble{background:#D85A30;color:white;border-radius:12px 12px 2px 12px}
+.msg.bot .bubble{background:#f5f5f0;color:#1a1a1a;border-radius:12px 12px 12px 2px;border:1px solid #e8e8e8}
+.msg-time{font-size:10px;color:#aaa;margin-top:3px}
+.cart-section{padding:10px;border-top:1px solid #e8e8e8}
+.cart-title{font-size:12px;font-weight:600;color:#666;margin-bottom:8px}
+.cart-item{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:#f5f5f0;border-radius:8px;margin-bottom:6px;font-size:12px}
+.cart-item-name{color:#1a1a1a;font-weight:500}
+.cart-item-meta{color:#666}
+.cart-total{display:flex;justify-content:space-between;padding:8px 8px 4px;font-size:13px;font-weight:600;color:#1a1a1a;border-top:1px solid #e8e8e8;margin-top:4px}
+.chat-input-area{padding:10px;border-top:1px solid #e8e8e8;flex-shrink:0}
+.chat-input-row{display:flex;gap:8px;align-items:center}
+.chat-input{flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:20px;font-size:13px;background:#f5f5f0;color:#1a1a1a;outline:none;font-family:inherit}
+.chat-input:focus{border-color:#ccc;background:#fff}
+.send-btn{width:34px;height:34px;border-radius:50%;background:#D85A30;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s}
+.send-btn:hover{background:#993C1D}
+.send-btn svg{width:16px;height:16px;fill:white}
+.typing{display:flex;gap:4px;align-items:center;padding:8px 12px}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#aaa;animation:blink 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes blink{0%,80%,100%{opacity:0.2}40%{opacity:1}}
+.empty-state{text-align:center;padding:3rem 1rem;color:#888;font-size:13px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#D85A30;color:white;padding:8px 18px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+@media(max-width:900px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+  .sidebar{display:none}
+  .chat-panel{height:400px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+ 
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Khide Mitai</div>
+          <div class="brand-sub">Chittagong delivery</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-section">Navigation</div>
+    <div class="nav-item active" onclick="showView('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard
+    </div>
+    <div class="nav-item" onclick="showView('menu',this)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/></svg>Menu
+    </div>
+    <div class="nav-item" onclick="showView('orders',this)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>Orders
+    </div>
+    <div class="nav-item" onclick="showView('restaurants',this)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>Restaurants
+    </div>
+    <div class="nav-section" style="margin-top:8px">Restaurants</div>
+    <div class="restaurants-list" id="sideRestList"></div>
+  </div>
+ 
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="btn" onclick="loadRestaurants()">↻ Refresh</button>
+        <button class="btn btn-primary" onclick="sendChat('Show restaurants')">Order now</button>
+      </div>
+    </div>
+    <div class="content">
+ 
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Restaurants</div>
+            <div class="stat-val" id="statRest">—</div>
+            <div class="stat-sub">Chittagong area</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Menu items</div>
+            <div class="stat-val" id="statItems">—</div>
+            <div class="stat-sub">Across all restaurants</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Orders placed</div>
+            <div class="stat-val" id="statOrders">—</div>
+            <div class="stat-sub">From database</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Model accuracy</div>
+            <div class="stat-val">99.4%</div>
+            <div class="stat-sub">Logistic regression</div>
+          </div>
+        </div>
+        <div class="section-head">All restaurants</div>
+        <table class="rest-table">
+          <thead><tr><th>Name</th><th>Cuisine</th><th>Rating</th><th>Phone</th><th>Status</th></tr></thead>
+          <tbody id="dashTableBody"><tr><td colspan="5" style="text-align:center;color:#aaa;padding:2rem">Loading...</td></tr></tbody>
+        </table>
+      </div>
+ 
+      <!-- MENU -->
+      <div class="view" id="view-menu">
+        <div class="menu-header">
+          <h2 id="menuRestName">Select a restaurant</h2>
+          <p id="menuRestMeta">Click any restaurant in the sidebar</p>
+        </div>
+        <div class="filter-row" id="catFilters"></div>
+        <div class="menu-grid" id="menuGrid">
+          <div class="empty-state">Select a restaurant from the sidebar to view its menu.</div>
+        </div>
+      </div>
+ 
+      <!-- ORDERS -->
+      <div class="view" id="view-orders">
+        <div class="section-head">Recent orders</div>
+        <div id="ordersContainer"><div class="empty-state">Loading orders...</div></div>
+      </div>
+ 
+      <!-- RESTAURANTS -->
+      <div class="view" id="view-restaurants">
+        <div class="section-head">All restaurants</div>
+        <table class="rest-table">
+          <thead><tr><th>Name</th><th>Cuisine</th><th>Address</th><th>Phone</th><th>Rating</th></tr></thead>
+          <tbody id="restTableBody"><tr><td colspan="5" style="text-align:center;color:#aaa;padding:2rem">Loading...</td></tr></tbody>
+        </table>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <!-- CHAT PANEL -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="chat-title">Khide Mitai chatbot</div>
+          <div class="chat-sub">AI-powered food assistant</div>
+        </div>
+        <div style="font-size:11px;color:#aaa;text-align:right" id="serverStatus">Connecting...</div>
+      </div>
+      <div class="chat-status">
+        <div class="dot" id="statusDot" style="background:#aaa"></div>
+        <span style="font-size:11px;color:#666" id="statusText">Checking server...</span>
+      </div>
+    </div>
+    <div class="quick-chips">
+      <div class="chip" onclick="sendChat('Show restaurants')">🍽️ Restaurants</div>
+      <div class="chip" onclick="sendChat('Show menu')">📜 Menu</div>
+      <!--<div class="chip" onclick="sendChat('Track my order')">📦 Track order</div> -->
+      <div class="chip" onclick="sendChat('Cancel order')">❌ Cancel</div>
+      <div class="chip" onclick="sendChat('I want biriyani')">🍚 Order biriyani</div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg bot">
+        <div class="bubble">👋 Hey! Welcome to Khide Mitai 🍽️
+I can help you browse restaurants, view menus and place orders.
+ 
+Try: "Show restaurants" or "I want biriyani"</div>
+        <div class="msg-time">Now</div>
+      </div>
+    </div>
+    <div class="cart-section" id="cartSection" style="display:none">
+      <div class="cart-title">🛒 Your cart</div>
+      <div id="cartItems"></div>
+      <div class="cart-total"><span>Total</span><span id="cartTotal">৳0</span></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px;font-size:13px" onclick="sendChat('checkout')">Checkout →</button>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="send-btn" onclick="sendChat()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div class="toast" id="toast"></div>
+ 
+<script>
+ 
+//  UPDATE THIS URL EVERY TIME YOU RESTART FLASK + NGROK
+const API_BASE = 'https://handsfree-abiding-subarctic.ngrok-free.dev/api';
+ 
+ 
+// ===== STATE =====
+let restaurants = [];
+let selectedRest = null;
+let currentMenuFilter = "All";
+let currentMenuItems = [];
+let cart = [];
+let chatState = {
+  cart: [], current_restaurant_id: null,
+  awaiting_confirmation: false, awaiting_payment: false
+};
+ 
+const avatarColors = ["#FAECE7","#E1F5EE","#E6F1FB","#FAEEDA","#FBEAF0","#EAF3DE","#EEEDFE","#F1EFE8"];
+const avatarTextColors = ["#993C1D","#0F6E56","#185FA5","#854F0B","#993556","#3B6D11","#3C3489","#5F5E5A"];
+ 
+function getInitials(name){ return name.split(" ").map(w=>w[0]).join("").substring(0,2).toUpperCase(); }
+function now(){ return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+ 
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2500);
+}
+ 
+function showView(name, navEl){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("view-"+name).classList.add("active");
+  if(navEl) navEl.classList.add("active");
+  const titles = {dashboard:"Dashboard", menu:"Menu", orders:"Orders", restaurants:"Restaurants"};
+  document.getElementById("pageTitle").textContent = titles[name] || name;
+  if(name === "orders") loadOrders();
+}
+ 
+// ===== LOAD RESTAURANTS FROM API =====
+async function loadRestaurants(){
+  try {
+    const res = await fetch(`${API_BASE}/restaurants`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    restaurants = await res.json();
+    buildSidebar();
+    buildDashboard();
+    buildRestaurantsTable();
+    document.getElementById("statRest").textContent = restaurants.length;
+  } catch(e) {
+    console.error("Failed to load restaurants:", e);
+  }
+}
+ 
+// ===== SIDEBAR =====
+function buildSidebar(){
+  const list = document.getElementById("sideRestList");
+  list.innerHTML = restaurants.map((r, i) => {
+    const bg = avatarColors[i % avatarColors.length];
+    const tc = avatarTextColors[i % avatarTextColors.length];
+    return `<div class="rest-item ${selectedRest===r.id?'selected':''}" onclick="selectRestaurant(${r.id})">
+      <div class="rest-avatar" style="background:${bg};color:${tc}">${getInitials(r.name)}</div>
+      <div class="rest-info">
+        <div class="rest-name">${r.name}</div>
+        <div class="rest-meta stars">★</div><span class="rest-meta">${r.rating} · ${r.cuisine}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+ 
+// ===== SELECT RESTAURANT → LOAD MENU =====
+async function selectRestaurant(id){
+  selectedRest = id;
+  buildSidebar();
+  const rest = restaurants.find(r => r.id === id);
+  if(!rest) return;
+ 
+  document.getElementById("menuRestName").textContent = rest.name;
+  document.getElementById("menuRestMeta").textContent = `${rest.cuisine} · ⭐ ${rest.rating} · ${rest.address}`;
+ 
+  try {
+    const res = await fetch(`${API_BASE}/menu/${id}`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    currentMenuItems = await res.json();
+    document.getElementById("statItems").textContent = currentMenuItems.length;
+    renderMenu();
+ 
+    // Switch to menu view
+    showView('menu', document.querySelectorAll('.nav-item')[1]);
+  } catch(e) {
+    console.error("Failed to load menu:", e);
+  }
+}
+ 
+// ===== RENDER MENU =====
+function renderMenu(){
+  const grid = document.getElementById("menuGrid");
+  const filters = document.getElementById("catFilters");
+ 
+  const filtered = currentMenuFilter === "All"
+    ? currentMenuItems
+    : currentMenuItems.filter(i => i.category === currentMenuFilter);
+ 
+  grid.innerHTML = filtered.length === 0
+    ? `<div class="empty-state">No items found.</div>`
+    : filtered.map(item => `
+      <div class="menu-card" onclick="addToCart(${item.id}, '${item.name.replace(/'/g,"\\'")}', ${item.price})">
+        <div class="menu-card-name">${item.name}</div>
+        <div class="menu-card-footer">
+          <span class="price">৳${item.price}</span>
+          <button class="add-btn" onclick="event.stopPropagation();addToCart(${item.id},'${item.name.replace(/'/g,"\\'")}',${item.price})">+</button>
+        </div>
+      </div>`).join("");
+}
+ 
+function filterMenu(cat){
+  currentMenuFilter = cat;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+  renderMenu();
+}
+ 
+// ===== ADD TO CART =====
+// FIX: sync UI cart → chatState.cart so chatbot checkout works correctly
+function addToCart(id, name, price){
+  const existing = cart.find(c => c.id === id);
+  if(existing){
+    existing.qty++;
+  } else {
+    cart.push({ id, name, price, qty: 1 });
+  }
+ 
+  // ✅ FIX: Keep chatState.cart in sync with UI cart
+  chatState.cart = cart.map(c => ({
+    item: c.name,
+    price: c.price,
+    quantity: c.qty
+  }));
+  if(selectedRest) chatState.current_restaurant_id = selectedRest;
+ 
+  updateCartUI();
+  showToast(`✅ ${name} added to cart!`);
+}
+ 
+// ===== CART UI =====
+function updateCartUI(){
+  const sec = document.getElementById("cartSection");
+  if(cart.length === 0){ sec.style.display = "none"; return; }
+  sec.style.display = "block";
+  document.getElementById("cartItems").innerHTML = cart.map(c => `
+    <div class="cart-item">
+      <span class="cart-item-name">${c.name}</span>
+      <span class="cart-item-meta">x${c.qty} · ৳${c.price * c.qty}</span>
+    </div>`).join("");
+  const total = cart.reduce((s,c) => s + c.price * c.qty, 0);
+  document.getElementById("cartTotal").textContent = "৳" + total;
+}
+ 
+// ===== DASHBOARD TABLE =====
+function buildDashboard(){
+  const tbody = document.getElementById("dashTableBody");
+  tbody.innerHTML = restaurants.map((r, i) => `
+    <tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.cuisine}</td>
+      <td class="stars">★ ${r.rating}</td>
+      <td>${r.phone || '—'}</td>
+      <td><span class="badge badge-green">Active</span></td>
+    </tr>`).join("");
+}
+ 
+// ===== RESTAURANTS TABLE =====
+function buildRestaurantsTable(){
+  const tbody = document.getElementById("restTableBody");
+  tbody.innerHTML = restaurants.map(r => `
+    <tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.cuisine}</td>
+      <td>${r.address || '—'}</td>
+      <td>${r.phone || '—'}</td>
+      <td class="stars">★ ${r.rating}</td>
+    </tr>`).join("");
+}
+ 
+// ===== LOAD ORDERS FROM API =====
+async function loadOrders(){
+  const container = document.getElementById("ordersContainer");
+  try {
+    const res = await fetch(`${API_BASE}/orders/1`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    const orders = await res.json();
+    document.getElementById("statOrders").textContent = orders.length;
+ 
+    if(orders.length === 0){
+      container.innerHTML = `<div class="empty-state">No orders yet. Place your first order!</div>`;
+      return;
+    }
+ 
+    container.innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div class="order-head">
+          <span class="order-id">Order #${o.order_id}</span>
+          <span class="badge badge-green">${o.status}</span>
+        </div>
+        <div style="font-size:12px;color:#666">${o.restaurant}</div>
+        <div class="order-footer">
+          <span class="order-total">৳${o.total}</span>
+          <span class="order-date">${o.date}</span>
+        </div>
+      </div>`).join("");
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state">Could not load orders.</div>`;
+  }
+}
+ 
+// ===== SERVER HEALTH CHECK =====
+async function checkServer(){
+  try {
+    const res = await fetch(`${API_BASE}/health`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    const data = await res.json();
+    document.getElementById("statusDot").style.background = "#639922";
+    document.getElementById("statusText").textContent = `Online · ML: ${data.ml_model ? "active" : "keyword mode"}`;
+    document.getElementById("serverStatus").textContent = "✅ Connected";
+  } catch(e) {
+    document.getElementById("statusDot").style.background = "#cc3333";
+    document.getElementById("statusText").textContent = "Server offline — update ngrok URL";
+    document.getElementById("serverStatus").textContent = "❌ Offline";
+  }
+}
+ 
+// ===== CHAT =====
+async function getBotReply(input){
+  try {
+    const res = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ message: input, state: chatState })
+    });
+    if(!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    chatState = data.state || chatState;
+ 
+    // Sync cart from chatbot state
+    if(data.state && data.state.cart && data.state.cart.length > 0){
+      cart = data.state.cart.map((c, i) => ({
+        id: i + 1000, name: c.item, price: c.price, qty: c.quantity || 1
+      }));
+    } else if(data.state && data.state.cart && data.state.cart.length === 0){
+      cart = [];
+    }
+    updateCartUI();
+    return data.response;
+  } catch(err) {
+    console.error(err);
+    return '⚠️ Cannot reach the server.\nMake sure Flask is running and update the ngrok URL at the top of the script.';
+  }
+}
+ 
+async function sendChat(text){
+  const input = document.getElementById("chatInput");
+  const msg = text || input.value.trim();
+  if(!msg) return;
+  input.value = "";
+ 
+  const msgs = document.getElementById("chatMessages");
+  msgs.innerHTML += `<div class="msg user"><div class="bubble">${msg}</div><div class="msg-time">${now()}</div></div>`;
+ 
+  const typingEl = document.createElement("div");
+  typingEl.className = "msg bot"; typingEl.id = "typingIndicator";
+  typingEl.innerHTML = `<div class="bubble" style="padding:8px 14px"><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  msgs.appendChild(typingEl);
+  msgs.scrollTop = msgs.scrollHeight;
+ 
+  const reply = await getBotReply(msg);
+ 
+  document.getElementById("typingIndicator")?.remove();
+  msgs.innerHTML += `<div class="msg bot"><div class="bubble">${reply}</div><div class="msg-time">${now()}</div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+}
+ 
+// ===== INIT =====
+checkServer();
+loadRestaurants();
+</script>
+</body>
+</html>
